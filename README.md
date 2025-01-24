@@ -117,7 +117,7 @@ Planned features for future releases:
 - Time-based goals and limits
 - Advanced analytics
 - Data visualization improvements
-- Theme customization
+
 
 ## License
 
