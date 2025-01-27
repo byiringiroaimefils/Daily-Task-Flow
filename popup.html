@@ -232,6 +232,250 @@
             font-size: 14px;
             color: #adb5bd;
         }
+
+        .goals-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .goals-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .goal-item {
+            text-align: center;
+        }
+        
+        .goal-progress {
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            margin-bottom: 8px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: #4a90e2;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        .goal-label {
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .chart-container {
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            height: 200px;
+        }
+
+        .settings-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #495057;
+            margin-top: 15px;
+        }
+
+        .settings-button:hover {
+            background: #f8f9fa;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #2c3e50;
+        }
+
+        .close {
+            font-size: 24px;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .goal-setting {
+            margin-bottom: 15px;
+        }
+
+        .goal-setting label {
+            display: block;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+
+        .goal-setting input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+
+        .primary-button {
+            width: 100%;
+            padding: 10px;
+            background: #4a90e2;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .primary-button:hover {
+            background: #357abd;
+        }
+
+        .goal-progress {
+            position: relative;
+        }
+
+        .goal-percentage {
+            position: absolute;
+            right: 0;
+            top: -20px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .progress-bar {
+            position: relative;
+            overflow: visible;
+        }
+
+        .progress-label {
+            position: absolute;
+            right: 0;
+            top: -18px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .task-list-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .task-item:hover {
+            background: #e9ecef;
+        }
+
+        .task-checkbox {
+            margin-right: 12px;
+        }
+
+        .task-content {
+            flex-grow: 1;
+        }
+
+        .task-title {
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .task-url {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .task-category-tag {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .icon-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #4a90e2;
+        }
+
+        .icon-button:hover {
+            background: #e9ecef;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+
+        .completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
     </style>
 </head>
 <body>
@@ -247,6 +491,52 @@
                     <div class="summary-value" id="total-visits">0</div>
                     <div class="summary-label">Sites Visited</div>
                 </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="productive-time">0h</div>
+                    <div class="summary-label">Productive Time</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="productivity-score">0%</div>
+                    <div class="summary-label">Productivity Score</div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="timeDistributionChart"></canvas>
+            </div>
+        </div>
+
+        <div class="task-list-section">
+            <div class="section-title">
+                Daily Tasks
+                <button id="add-task" class="icon-button">
+                    <span class="icon">➕</span>
+                </button>
+            </div>
+            <div id="task-list">
+                <!-- Tasks will be populated here -->
+            </div>
+        </div>
+
+        <div class="goals-section">
+            <div class="section-title">Daily Goals</div>
+            <div class="goals-grid">
+                <div class="goal-item">
+                    <div class="goal-progress">
+                        <div class="progress-bar" id="productive-time-progress"></div>
+                    </div>
+                    <div class="goal-label">4h Productive Time</div>
+                </div>
+                <div class="goal-item">
+                    <div class="goal-progress">
+                        <div class="progress-bar" id="learning-time-progress"></div>
+                    </div>
+                    <div class="goal-label">1h Learning</div>
+                </div>
+            </div>
+            <div class="goals-settings">
+                <button id="customize-goals" class="settings-button">
+                    <span class="icon">⚙️</span> Customize Goals
+                </button>
             </div>
         </div>
 
@@ -268,6 +558,57 @@
         </div>
     </div>
 
+    <div id="goals-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Customize Daily Goals</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="goal-setting">
+                    <label>Productive Time Goal (hours)</label>
+                    <input type="number" id="productive-time-goal" min="1" max="24" value="4">
+                </div>
+                <div class="goal-setting">
+                    <label>Learning Time Goal (hours)</label>
+                    <input type="number" id="learning-time-goal" min="1" max="24" value="1">
+                </div>
+                <button id="save-goals" class="primary-button">Save Goals</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="task-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Task</h2>
+                <span class="close-task-modal close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="task-form">
+                    <div class="form-group">
+                        <label>Task Name</label>
+                        <input type="text" id="task-name" placeholder="Enter task name">
+                    </div>
+                    <div class="form-group">
+                        <label>URL (optional)</label>
+                        <input type="url" id="task-url" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="task-category">
+                            <option value="Work">Work</option>
+                            <option value="Learning">Learning</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="save-task" class="primary-button">Add Task</button>
+            </div>
+        </div>
+    </div>
+
     <script src="popup.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>

@@ -3,6 +3,16 @@ document.addEventListener('DOMContentLoaded', () => {
     setupTabs();
     loadDailyView();
     updateSummary();
+    updateProductivityMetrics();
+    setupModal();
+    setupTaskModal();
+    loadTasks();
+    
+    // Refresh metrics every minute
+    setInterval(() => {
+        updateSummary();
+        updateProductivityMetrics();
+    }, 60000);
 });
 
 // Set up the tab switching functionality
@@ -118,20 +128,85 @@ async function loadWeeklyView() {
 // Update summary section
 async function updateSummary() {
     try {
-        const result = await chrome.storage.local.get(['visitedSites']);
+        const result = await chrome.storage.local.get(['visitedSites', 'tasks']);
         const sites = result.visitedSites || [];
+        const tasks = result.tasks || [];
         const today = new Date().toLocaleDateString();
         
-        // Get today's visits
+        // Get today's visits and tasks
         const todayVisits = sites.filter(site => 
             new Date(site.timestamp).toLocaleDateString() === today
+        );
+        const todayTasks = tasks.filter(task => 
+            new Date(task.createdAt).toLocaleDateString() === today
         );
 
         // Update total visits
         document.getElementById('total-visits').textContent = todayVisits.length;
+        
+        // Update task completion
+        const completedTasks = todayTasks.filter(task => task.completed).length;
+        const totalTasks = todayTasks.length;
+        const taskCompletion = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+        document.getElementById('task-completion').textContent = `${taskCompletion}%`;
     } catch (error) {
         console.error('Error updating summary:', error);
     }
+}
+
+// Add these functions after the existing updateSummary function
+async function updateProductivityMetrics() {
+    try {
+        const [timeResult, goalsResult] = await Promise.all([
+            chrome.storage.local.get(['siteTimeData']),
+            chrome.storage.local.get(['goals'])
+        ]);
+
+        const today = new Date().toLocaleDateString();
+        const timeData = timeResult.siteTimeData?.[today] || {};
+        const goals = goalsResult.goals || {
+            productiveTime: 4 * 3600,
+            learningTime: 1 * 3600
+        };
+
+        // Calculate and update metrics
+        updateTimeMetrics(timeData);
+        updateGoalProgress('productive-time-progress', calculateProductiveTime(timeData), goals.productiveTime);
+        updateGoalProgress('learning-time-progress', calculateLearningTime(timeData), goals.learningTime);
+        
+        // Update chart
+        initializeTimeDistributionChart(timeData);
+    } catch (error) {
+        console.error('Error updating productivity metrics:', error);
+    }
+}
+
+function updateGoalProgress(elementId, current, target) {
+    const percentage = Math.min(Math.round((current / target) * 100), 100);
+    const progressBar = document.getElementById(elementId);
+    progressBar.style.width = `${percentage}%`;
+    
+    // Add percentage label
+    const label = document.createElement('div');
+    label.className = 'progress-label';
+    label.textContent = `${percentage}%`;
+    
+    // Remove existing label if any
+    const existingLabel = progressBar.querySelector('.progress-label');
+    if (existingLabel) {
+        existingLabel.remove();
+    }
+    progressBar.appendChild(label);
+}
+
+function calculateLearningTime(timeData) {
+    let learningTime = 0;
+    for (const [domain, time] of Object.entries(timeData)) {
+        if (isLearningSite(domain)) {
+            learningTime += time;
+        }
+    }
+    return learningTime;
 }
 
 // Utility functions
@@ -302,4 +377,181 @@ function groupByDay(sites) {
         acc[date].push(site);
         return acc;
     }, {});
+}
+
+// Initialize Chart.js
+function initializeTimeDistributionChart(timeData) {
+    const ctx = document.getElementById('timeDistributionChart').getContext('2d');
+    const categories = ['Work', 'Learning', 'Other'];
+    const times = categories.map(category => {
+        return Object.entries(timeData)
+            .filter(([domain]) => getCategoryForSite(domain) === category)
+            .reduce((sum, [, time]) => sum + time, 0);
+    });
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: categories,
+            datasets: [{
+                data: times,
+                backgroundColor: ['#4a90e2', '#2ecc71', '#95a5a6'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right'
+                },
+                title: {
+                    display: true,
+                    text: 'Time Distribution'
+                }
+            }
+        }
+    });
+}
+
+// Modal functionality
+function setupModal() {
+    const modal = document.getElementById('goals-modal');
+    const btn = document.getElementById('customize-goals');
+    const span = document.getElementsByClassName('close')[0];
+    const saveBtn = document.getElementById('save-goals');
+
+    btn.onclick = () => modal.style.display = 'block';
+    span.onclick = () => modal.style.display = 'none';
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    };
+
+    saveBtn.onclick = saveGoals;
+}
+
+async function saveGoals() {
+    const productiveTimeGoal = document.getElementById('productive-time-goal').value;
+    const learningTimeGoal = document.getElementById('learning-time-goal').value;
+
+    await chrome.storage.local.set({
+        goals: {
+            productiveTime: productiveTimeGoal * 3600,
+            learningTime: learningTimeGoal * 3600
+        }
+    });
+
+    document.getElementById('goals-modal').style.display = 'none';
+    updateProductivityMetrics();
+}
+
+function setupTaskModal() {
+    const modal = document.getElementById('task-modal');
+    const btn = document.getElementById('add-task');
+    const span = document.getElementsByClassName('close-task-modal')[0];
+    const saveBtn = document.getElementById('save-task');
+
+    btn.onclick = () => modal.style.display = 'block';
+    span.onclick = () => modal.style.display = 'none';
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    };
+
+    saveBtn.onclick = saveTask;
+}
+
+async function saveTask() {
+    const taskName = document.getElementById('task-name').value;
+    const taskUrl = document.getElementById('task-url').value;
+    const taskCategory = document.getElementById('task-category').value;
+
+    if (!taskName) return;
+
+    const task = {
+        id: Date.now(),
+        name: taskName,
+        url: taskUrl,
+        category: taskCategory,
+        completed: false,
+        createdAt: new Date().toISOString()
+    };
+
+    const result = await chrome.storage.local.get(['tasks']);
+    const tasks = result.tasks || [];
+    tasks.push(task);
+    await chrome.storage.local.set({ tasks });
+
+    document.getElementById('task-modal').style.display = 'none';
+    document.getElementById('task-name').value = '';
+    document.getElementById('task-url').value = '';
+    
+    loadTasks();
+}
+
+async function loadTasks() {
+    const container = document.getElementById('task-list');
+    const result = await chrome.storage.local.get(['tasks']);
+    const tasks = result.tasks || [];
+    
+    // Filter for today's tasks
+    const today = new Date().toLocaleDateString();
+    const todayTasks = tasks.filter(task => 
+        new Date(task.createdAt).toLocaleDateString() === today
+    );
+
+    if (todayTasks.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-text">No tasks for today</div>
+                <div class="empty-state-subtext">Add tasks to track your daily goals</div>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = todayTasks
+        .sort((a, b) => a.completed - b.completed)
+        .map(task => createTaskElement(task))
+        .join('');
+
+    // Add click handlers
+    container.querySelectorAll('.task-item').forEach(taskElement => {
+        taskElement.addEventListener('click', (e) => handleTaskClick(e, taskElement.dataset.taskId));
+    });
+}
+
+function createTaskElement(task) {
+    return `
+        <div class="task-item ${task.completed ? 'completed' : ''}" data-task-id="${task.id}">
+            <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
+            <div class="task-content">
+                <div class="task-title">${task.name}</div>
+                ${task.url ? `<div class="task-url">${task.url}</div>` : ''}
+            </div>
+            <span class="task-category-tag category-${task.category.toLowerCase()}">${task.category}</span>
+        </div>
+    `;
+}
+
+async function handleTaskClick(event, taskId) {
+    const result = await chrome.storage.local.get(['tasks']);
+    const tasks = result.tasks || [];
+    const taskIndex = tasks.findIndex(t => t.id === parseInt(taskId));
+
+    if (taskIndex === -1) return;
+
+    if (event.target.classList.contains('task-checkbox')) {
+        // Toggle completion
+        tasks[taskIndex].completed = !tasks[taskIndex].completed;
+        await chrome.storage.local.set({ tasks });
+        loadTasks();
+    } else if (tasks[taskIndex].url) {
+        // Open URL in new tab
+        chrome.tabs.create({ url: tasks[taskIndex].url });
+    }
 }
