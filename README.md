@@ -93,7 +93,7 @@ Daily Task Flow is a powerful Chrome extension that helps you understand your br
 ### Technologies Used
 - JavaScript (ES6+)
 - Chrome Extension APIs
-- HTML5
+- HTML
 - CSS
 
 ### Storage
